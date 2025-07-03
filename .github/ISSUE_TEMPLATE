@@ -1,0 +1,27 @@
+---
+name: Bug Report
+about: Report something that isn’t working
+title: "[BUG] "
+labels: bug
+assignees: ''
+
+---
+
+### 🐞 Describe the bug
+Explain what’s going wrong.
+
+### 🔁 Steps to reproduce
+1. Go to '...'
+2. Click on '....'
+3. See error
+
+### 📷 Screenshots
+Add images if helpful
+
+### 💻 Environment
+- OS:
+- Browser:
+- Node version:
+
+### 📝 Additional context
+Anything else you want to share.

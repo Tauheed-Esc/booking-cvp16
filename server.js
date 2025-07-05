@@ -9,27 +9,30 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Allow all origins using default cors()
+// CORS (allow all for now; can be restricted later)
 app.use(cors());
 
 // Middleware
 app.use(bodyParser.json());
 
-// Connect to MongoDB
+// MongoDB Connection
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB connected'))
-  .catch((err) => console.error('MongoDB connection error:', err));
+  .catch((err) => {
+    console.error('MongoDB connection error:', err.message);
+    process.exit(1);
+  });
 
-// User Routes
+// Routes
 const userRoutes = require('./routes/userRoutes');
 app.use('/api/users', userRoutes);
 
-// Test route
+// Test Route
 app.get('/', (req, res) => {
   res.send('API is running...');
 });
 
-// Start server
+// Start Server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
 });

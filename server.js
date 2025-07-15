@@ -1,5 +1,4 @@
 // server.js
-
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -8,24 +7,20 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Validate essential environment variables
+//Validate essential environment variables
 if (!process.env.MONGO_URI) {
-  console.error('FATAL ERROR: MONGO_URI is not defined.');
+  console.error('FATAL ERROR: MONGO_URI is not defined in .env');
   process.exit(1);
 }
 
-// CORS configuration
-// For production, you should restrict the origin to your frontend's domain
-// const corsOptions = {
-//   origin: 'http://your-frontend-domain.com'
-// };
-// app.use(cors(corsOptions));
+//CORS Configuration
+//Allow all origins during development
 app.use(cors());
 
-// Middleware
-app.use(express.json()); // Use built-in Express body parser
+//Middleware
+app.use(express.json()); // Built-in JSON parser
 
-// MongoDB Connection
+//Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB connected'))
   .catch((err) => {
@@ -33,23 +28,23 @@ mongoose.connect(process.env.MONGO_URI)
     process.exit(1);
   });
 
-// Routes
+//Routes
 const userRoutes = require('./routes/userRoutes');
 app.use('/api/users', userRoutes);
 
-// Test Route
+//Test Route
 app.get('/', (req, res) => {
-  res.send('API is running...');
+  res.send('CV-P16 API is running...');
 });
 
-// Global Error Handling Middleware
+//Global Error Handling Middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error('Internal Error:', err.stack);
   const statusCode = err.statusCode || 500;
-  res.status(statusCode).send({ error: err.message || 'Something went wrong!' });
+  res.status(statusCode).json({ error: err.message || 'Something went wrong!' });
 });
 
 // Start Server
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`Server running on http://localhost:${PORT}`);
 });

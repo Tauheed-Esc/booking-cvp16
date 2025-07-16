@@ -97,22 +97,31 @@ exports.verifyOtp = async (req, res) => {
 // ==============================
 // POST /api/users/login
 // ==============================
+// POST /api/users/login
 exports.loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    console.log('🔍 Login attempt:', email);
+
     const user = await User.findOne({ email });
 
-    if (!user) return res.status(404).json({ error: 'User not found' });
-    if (!user.isVerified) return res.status(403).json({ error: 'Please verify your email first' });
+    if (!user) {
+      console.log('❌ User not found');
+      return res.status(404).json({ error: 'User not found' });
+    }
 
-    // Debug logs
-    console.log('Hashed in DB:', user.password);
-    console.log('Plain from input:', password);
+    if (!user.isVerified) {
+      console.log('❌ User not verified');
+      return res.status(403).json({ error: 'Please verify your email first' });
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
+    console.log('🧪 Password match:', isMatch);
 
-    if (!isMatch) return res.status(401).json({ error: 'Invalid email or password' });
+    if (!isMatch) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
 
     const token = jwt.sign(
       { userId: user._id, email: user.email },
@@ -123,7 +132,7 @@ exports.loginUser = async (req, res) => {
     res.json({ token });
 
   } catch (err) {
-    console.error('Error in loginUser:', err.message);
-    res.status(500).json({ error: 'Server error during login' });
+    console.error('🔥 Login Error:', err.message);
+    res.status(500).json({ error: 'Server error' });
   }
 };

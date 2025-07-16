@@ -6,7 +6,7 @@ const {
   loginUser
 } = require('../controllers/userController');
 
-router.post('/create', createUser);
+router.post('/send-otp', createUser);
 router.post('/verify-otp', verifyOtp);
 router.post('/login', loginUser);
 

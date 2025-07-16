@@ -98,13 +98,17 @@ exports.verifyOtp = async (req, res) => {
 exports.loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
 
-    if (!user) return res.status(404).json({ error: 'User not found' });
-    if (!user.isVerified) return res.status(403).json({ error: 'Please verify your email first' });
+    const user = await User.findOne({ email });
+    if (!user)
+      return res.status(404).json({ error: 'User not found' });
+
+    if (!user.isVerified)
+      return res.status(403).json({ error: 'Please verify your email first' });
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(401).json({ error: 'Invalid email or password' });
+    if (!isMatch)
+      return res.status(401).json({ error: 'Invalid email or password' });
 
     const token = jwt.sign(
       { userId: user._id, email: user.email },

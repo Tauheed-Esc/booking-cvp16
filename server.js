@@ -11,7 +11,7 @@ app.use(bodyParser.json());
 
 app.use('/api/users', userRoutes);
 
-// ✅ Add this welcome route for root "/"
+//Add this welcome route for root "/"
 app.get('/', (req, res) => {
   res.send('Welcome to the CVP16 Auth API - Backend is Live!');
 });

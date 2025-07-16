@@ -96,8 +96,6 @@ exports.verifyOtp = async (req, res) => {
 
 // POST /api/users/login
 exports.loginUser = async (req, res) => {
-  console.log("Hashed:", user.password);
-  console.log("Plain:", password);
   
   try {
     const { email, password } = req.body;

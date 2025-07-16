@@ -24,12 +24,28 @@ exports.createUser = async (req, res) => {
     }
 
     const existingUser = await User.findOne({ email });
-    if (existingUser) return res.status(400).json({ error: 'Email already registered' });
 
+    // 🔁 If user exists but is not verified, resend OTP
+    if (existingUser) {
+      if (existingUser.isVerified) {
+        return res.status(400).json({ error: 'Email is already registered and verified' });
+      }
+
+      const newOtp = generateOtp();
+      existingUser.otp = newOtp;
+      existingUser.otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+
+      await existingUser.save();
+      await sendOtpEmail(email, newOtp);
+
+      return res.status(200).json({ message: 'New OTP sent to your email' });
+    }
+
+    // 🌱 New user creation flow
     const hashedPassword = await bcrypt.hash(password, 10);
     const dobUTC = convertToUTC(dateOfBirth);
     const otp = generateOtp();
-    const otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 min
+    const otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
     const user = new User({
       firstName,
@@ -39,7 +55,7 @@ exports.createUser = async (req, res) => {
       dateOfBirth: dobUTC,
       genderPreference,
       otp,
-      otpExpiresAt
+      otpExpiresAt,
     });
 
     await user.save();
@@ -51,6 +67,7 @@ exports.createUser = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 // POST /api/users/verify-otp
 exports.verifyOtp = async (req, res) => {

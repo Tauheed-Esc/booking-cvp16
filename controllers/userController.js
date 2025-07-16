@@ -1,16 +1,20 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const validator = require('validator');
+
 const User = require('../models/User');
 const convertToUTC = require('../utils/convertToUTC');
 const generateOtp = require('../utils/generateOtp');
 const sendOtpEmail = require('../utils/sendEmail');
-const validator = require('validator');
 
-// POST /api/users/create
+// =========================
+// POST /api/users/send-otp
+// =========================
 exports.createUser = async (req, res) => {
   try {
     const { firstName, lastName, email, password, dateOfBirth, genderPreference } = req.body;
 
+    // Validate input fields
     if (!firstName || !lastName || !email || !password || !dateOfBirth || !genderPreference) {
       return res.status(400).json({ error: 'All fields are required' });
     }
@@ -25,27 +29,18 @@ exports.createUser = async (req, res) => {
 
     const existingUser = await User.findOne({ email });
 
-    // 🔁 If user exists but is not verified, resend OTP
     if (existingUser) {
       if (existingUser.isVerified) {
-        return res.status(400).json({ error: 'Email is already registered and verified' });
+        return res.status(400).json({ error: 'Email already registered and verified' });
+      } else {
+        return res.status(400).json({ error: 'Email already registered but not verified. Please verify or use a new email.' });
       }
-
-      const newOtp = generateOtp();
-      existingUser.otp = newOtp;
-      existingUser.otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
-
-      await existingUser.save();
-      await sendOtpEmail(email, newOtp);
-
-      return res.status(200).json({ message: 'New OTP sent to your email' });
     }
 
-    // 🌱 New user creation flow
     const hashedPassword = await bcrypt.hash(password, 10);
     const dobUTC = convertToUTC(dateOfBirth);
     const otp = generateOtp();
-    const otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
+    const otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
 
     const user = new User({
       firstName,
@@ -55,7 +50,7 @@ exports.createUser = async (req, res) => {
       dateOfBirth: dobUTC,
       genderPreference,
       otp,
-      otpExpiresAt,
+      otpExpiresAt
     });
 
     await user.save();
@@ -64,15 +59,18 @@ exports.createUser = async (req, res) => {
     res.status(201).json({ message: 'User created. OTP sent to email.' });
 
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error in createUser:', err.message);
+    res.status(500).json({ error: 'Server error. Please try again.' });
   }
 };
 
-
+// ==============================
 // POST /api/users/verify-otp
+// ==============================
 exports.verifyOtp = async (req, res) => {
   try {
     const { email, otp } = req.body;
+
     const user = await User.findOne({ email });
 
     if (!user) return res.status(404).json({ error: 'User not found' });
@@ -87,29 +85,34 @@ exports.verifyOtp = async (req, res) => {
     user.otpExpiresAt = undefined;
 
     await user.save();
+
     res.json({ message: 'Account verified successfully' });
 
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error in verifyOtp:', err.message);
+    res.status(500).json({ error: 'Server error during verification' });
   }
 };
 
+// ==============================
 // POST /api/users/login
+// ==============================
 exports.loginUser = async (req, res) => {
-  
   try {
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
-    if (!user)
-      return res.status(404).json({ error: 'User not found' });
 
-    if (!user.isVerified)
-      return res.status(403).json({ error: 'Please verify your email first' });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (!user.isVerified) return res.status(403).json({ error: 'Please verify your email first' });
+
+    // Debug logs
+    console.log('Hashed in DB:', user.password);
+    console.log('Plain from input:', password);
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch)
-      return res.status(401).json({ error: 'Invalid email or password' });
+
+    if (!isMatch) return res.status(401).json({ error: 'Invalid email or password' });
 
     const token = jwt.sign(
       { userId: user._id, email: user.email },
@@ -120,6 +123,7 @@ exports.loginUser = async (req, res) => {
     res.json({ token });
 
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error in loginUser:', err.message);
+    res.status(500).json({ error: 'Server error during login' });
   }
 };

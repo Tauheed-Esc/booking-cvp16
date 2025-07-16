@@ -7,9 +7,8 @@ const convertToUTC = require('../utils/convertToUTC');
 const generateOtp = require('../utils/generateOtp');
 const sendOtpEmail = require('../utils/sendEmail');
 
-// =========================
+
 // POST /api/users/send-otp
-// =========================
 exports.createUser = async (req, res) => {
   try {
     const { firstName, lastName, email, password, dateOfBirth, genderPreference } = req.body;
@@ -64,9 +63,8 @@ exports.createUser = async (req, res) => {
   }
 };
 
-// ==============================
+
 // POST /api/users/verify-otp
-// ==============================
 exports.verifyOtp = async (req, res) => {
   try {
     const { email, otp } = req.body;
@@ -94,9 +92,7 @@ exports.verifyOtp = async (req, res) => {
   }
 };
 
-// ==============================
-// POST /api/users/login
-// ==============================
+
 // POST /api/users/login
 exports.loginUser = async (req, res) => {
   try {
@@ -107,12 +103,12 @@ exports.loginUser = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      console.log('❌ User not found');
+      console.log('User not found');
       return res.status(404).json({ error: 'User not found' });
     }
 
     if (!user.isVerified) {
-      console.log('❌ User not verified');
+      console.log('User not verified');
       return res.status(403).json({ error: 'Please verify your email first' });
     }
 
@@ -132,7 +128,7 @@ exports.loginUser = async (req, res) => {
     res.json({ token });
 
   } catch (err) {
-    console.error('🔥 Login Error:', err.message);
+    console.error('Login Error:', err.message);
     res.status(500).json({ error: 'Server error' });
   }
 };

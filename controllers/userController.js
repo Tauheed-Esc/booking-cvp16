@@ -58,7 +58,10 @@ exports.createUser = async (req, res) => {
     res.status(201).json({ message: 'User created. OTP sent to email.' });
 
   } catch (err) {
-    console.error('Error in createUser:', err); // Log full error object
+    console.error('Error in createUser:', err);
+    if (err.message && err.message.includes('Invalid date')) {
+      return res.status(400).json({ error: 'Invalid date format. Use DD-MM-YYYY.' });
+    }
     res.status(500).json({ error: 'Server error. Please try again.' });
   }
 };

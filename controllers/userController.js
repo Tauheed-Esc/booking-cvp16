@@ -58,7 +58,7 @@ exports.createUser = async (req, res) => {
     res.status(201).json({ message: 'User created. OTP sent to email.' });
 
   } catch (err) {
-    console.error('Error in createUser:', err.message);
+    console.error('Error in createUser:', err); // Log full error object
     res.status(500).json({ error: 'Server error. Please try again.' });
   }
 };

@@ -79,7 +79,7 @@ Request Body:
   "lastName": "Tauheed",
   "email": "mohdabdultauheed098@gmail.com",
   "password": "cvp16secure@123",
-  "dateOfBirth": "2003-07-18",
+  "dateOfBirth": "18-07-2003",
   "genderPreference": "Male"
 }
 

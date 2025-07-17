@@ -53,7 +53,14 @@ exports.createUser = async (req, res) => {
     });
 
     await user.save();
-    await sendOtpEmail(email, otp);
+    console.log(`Sending OTP to ${email}...`);
+    try {
+      await sendOtpEmail(email, otp);
+      console.log(` OTP email sent to ${email}`);
+    } catch (emailError) {
+      console.error('Email send failed:', emailError.message);
+      // Optionally, you can return an error response here if email sending is critical
+    }
 
     res.status(201).json({ message: 'User created. OTP sent to email.' });
 
